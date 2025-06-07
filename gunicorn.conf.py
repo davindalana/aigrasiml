@@ -1,5 +1,5 @@
 # gunicorn.conf.py
-import multiprocessing
+import os
 
 bind = "0.0.0.0:{}".format(os.environ.get("PORT", "5000"))
 workers = 1
