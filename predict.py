@@ -3,17 +3,22 @@ import numpy as np
 import tensorflow as tf
 import pandas as pd
 import joblib
+import os
+from pathlib import Path
 
 app = Flask(__name__)
 
-# Load model dan scaler
-model = tf.keras.models.load_model('best_irrigation_multiclass_model.keras')
-scaler = joblib.load('scaler_multiclass.pkl')
+# ──────────────────────────────
+# 1)  MUAT MODEL & SCALER DARI PATH ABSOLUT
+# ──────────────────────────────
+BASE_DIR = Path(__file__).resolve().parent
+MODEL_PATH  = BASE_DIR / 'best_irrigation_multiclass_model.keras'
+SCALER_PATH = BASE_DIR / 'scaler_multiclass.pkl'
 
-# Nama fitur harus sama dengan saat scaler dilatih
+model  = tf.keras.models.load_model(MODEL_PATH)
+scaler = joblib.load(SCALER_PATH)
+
 FEATURE_NAMES = ['Soil_Moisture', 'Temperature', 'Air_Humidity']
-
-# Mapping untuk pesan berdasarkan Irrigation_Level
 message_map = {
     0: 'Tidak perlu siram',
     1: 'Perlu siram level 1',
@@ -21,44 +26,40 @@ message_map = {
     3: 'Perlu siram level 3'
 }
 
+# ──────────────────────────────
+# 2)  ENDPOINT PREDIKSI
+# ──────────────────────────────
 @app.route('/predict', methods=['POST'])
 def predict():
-    try:
-        data = request.get_json()
+    data = request.get_json()
 
-        # Validasi input
-        if not all(k in data for k in FEATURE_NAMES):
-            return jsonify({'error': 'Incomplete or invalid data. Required keys: Soil_Moisture, Temperature, Air_Humidity'}), 400
-
-        # Masukkan ke DataFrame agar sesuai dengan scaler
-        df_input = pd.DataFrame([[
-            data['Soil_Moisture'],
-            data['Temperature'],
-            data['Air_Humidity']
-        ]], columns=FEATURE_NAMES)
-
-        # Skalakan input
-        scaled_input = scaler.transform(df_input)
-
-        # Prediksi
-        prediction = model.predict(scaled_input, verbose=0)
-        predicted_class = np.argmax(prediction, axis=1)[0]
-
-        # Validasi kelas
-        if predicted_class not in [0, 1, 2, 3]:
-            return jsonify({'error': f'Invalid class predicted: {predicted_class}'}), 500
-
-        # Dapatkan pesan berdasarkan kelas
-        message = message_map.get(predicted_class, 'Kelas tidak dikenal')
-
+    # validasi input
+    if not data or not all(k in data for k in FEATURE_NAMES):
         return jsonify({
+            'error': 'Incomplete or invalid data. Required keys: Soil_Moisture, Temperature, Air_Humidity'
+        }), 400
 
-            'Irrigation_Level': int(predicted_class),
-            'Message': message
-        })
+    df_input = pd.DataFrame([[
+        data['Soil_Moisture'],
+        data['Temperature'],
+        data['Air_Humidity']
+    ]], columns=FEATURE_NAMES)
 
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    scaled = scaler.transform(df_input)
+    probs  = model.predict(scaled, verbose=0)
+    cls    = int(np.argmax(probs, axis=1)[0])
 
+    if cls not in message_map:
+        return jsonify({'error': f'Invalid class predicted: {cls}'}), 500
+
+    return jsonify({
+        'Irrigation_Level': cls,
+        'Message': message_map[cls]
+    })
+
+# ──────────────────────────────
+# 3)  MAIN – BIND KE HOST & PORT YG BENAR
+# ──────────────────────────────
 if __name__ == '__main__':
-    app.run(port=8001)
+    port = int(os.environ.get('PORT', 5000))   # Render meng-set PORT sendiri
+    app.run(host='0.0.0.0', port=port)
