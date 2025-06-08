@@ -60,6 +60,7 @@ def predict():
 # ──────────────────────────────
 # 3)  MAIN – BIND KE HOST & PORT YG BENAR
 # ──────────────────────────────
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))   # Render meng-set PORT sendiri
-    app.run(host='0.0.0.0', port=port)
+if __name__ == "__main__":
+    from os import getenv
+    port = int(getenv("PORT", 8000))
+    app.run(host="0.0.0.0", port=port)
