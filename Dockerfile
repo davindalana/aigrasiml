@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Paparkan port yang akan didengarkan aplikasi Anda (sesuaikan jika Flask berjalan di port lain)
-EXPOSE 5000
+EXPOSE 8080
 
 # Perintah untuk menjalankan Gunicorn
 # Gunakan -c gunicorn.conf.py untuk memuat konfigurasi Gunicorn
