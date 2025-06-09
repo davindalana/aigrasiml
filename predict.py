@@ -158,6 +158,7 @@ def predict():
         return jsonify({'error': str(e)}), 500
 
 # ───────────── Jalankan Aplikasi ─────────────
-port = int(os.getenv("PORT", 8080))
-print(f"INFO: Starting Flask app on 0.0.0.0:{port}")
-app.run(host="0.0.0.0", port=port)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8080))  # default 8080 jika tidak diset
+    print(f"INFO: Starting Flask app on 0.0.0.0:{port}")
+    app.run(host="0.0.0.0", port=port)
