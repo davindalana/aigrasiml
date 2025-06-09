@@ -96,7 +96,7 @@ def predict():
 # ──────────────────────────────
 # 3) MAIN – BIND KE HOST & PORT YG BENAR
 # ──────────────────────────────
-if __name__ == "__main__":
+# if __name__ == "__main__":
     port = int(os.getenv("PORT", 8080)) # Menggunakan os.getenv secara langsung
     print(f"INFO: Starting Flask app on 0.0.0.0:{port}")
     app.run(host="0.0.0.0", port=port)
