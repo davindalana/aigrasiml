@@ -1,6 +1,6 @@
 # Dockerfile
 # Gunakan base image Python yang sesuai (misalnya, Python 3.9 slim-buster)
-FROM python:3.9-slim-buster
+FROM python:3.11-slim-buster
 
 # Atur direktori kerja di dalam container
 WORKDIR /app
